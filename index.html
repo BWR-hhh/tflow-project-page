@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="TFlow: weight-space communication for efficient multi-agent LLM collaboration.">
+  <meta name="keywords" content="TFlow, Thought Flow, multi-agent LLM, weight-space communication, LoRA, parameter generation">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TFlow: Good Agentic Friends Do Not Just Give Verbal Advice</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+</head>
+<body>
+  <section class="hero is-light publication-header">
+    <div class="hero-body">
+      <div class="container is-max-widescreen has-text-centered">
+        <h1 class="title publication-title">
+          <span class="title-line">Good Agentic Friends Do Not Just</span>
+          <span class="title-line">Give Verbal Advice: They Can</span>
+          <span class="title-line">Update Your Weights</span>
+        </h1>
+        <h2 class="subtitle publication-subtitle mt-4">TFlow: A Weight-Space Communication Architecture for Multi&#8209;Agent Systems</h2>
+        <div class="publication-venue">Preprint, 2026</div>
+
+        <div class="publication-authors is-size-5">
+          <span class="author-block">Wenrui Bao<sup>1</sup></span>
+          <span class="author-block">Huan Wang<sup>2</sup></span>
+          <span class="author-block">Jian Wang<sup>3</sup></span>
+          <span class="author-block">Zhangyang Wang<sup>4</sup></span>
+          <span class="author-block">Kai Wang<sup>5</sup></span>
+          <span class="author-block">Yuzhang Shang<sup>1</sup></span>
+        </div>
+
+        <div class="is-size-6 mt-2">
+          <span><sup>1</sup>University of Central Florida</span>
+          <span class="ml-3"><sup>2</sup>Westlake University</span>
+          <span class="ml-3"><sup>3</sup>Snap Inc.</span>
+          <span class="ml-3"><sup>4</sup>UT-Austin</span>
+          <span class="ml-3"><sup>5</sup>Tencent HY</span>
+        </div>
+
+        <div class="column has-text-centered">
+          <div class="publication-links">
+            <span class="link-block">
+              <a href="static/paper/TFlow.pdf" class="external-link button is-normal is-rounded is-dark">
+                <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                <span>Paper</span>
+              </a>
+            </span>
+            <span class="link-block">
+              <a href="https://github.com/BWR-hhh/TFlow" class="external-link button is-normal is-rounded is-dark">
+                <span class="icon"><i class="fab fa-github"></i></span>
+                <span>Code</span>
+              </a>
+            </span>
+            <span class="link-block">
+              <a href="#bibtex" class="external-link button is-normal is-rounded is-dark">
+                <span class="icon"><i class="fas fa-quote-right"></i></span>
+                <span>BibTeX</span>
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hero teaser">
+    <div class="container is-max-desktop">
+      <div class="hero-body">
+        <img class="teaser-image zoomable-image" src="static/images/teaser.svg" alt="TFlow teaser comparing text-based and weight-space multi-agent collaboration.">
+        <p class="caption has-text-centered">
+          TFlow replaces verbose text-channel handoffs with transient, query-conditioned weight updates, enabling multi-agent collaboration without inflating the receiver's context.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Abstract</h2>
+      <div class="content is-size-5">
+        <p>
+          Multi-agent LLM systems commonly communicate through natural-language messages. While this interface is universal and human-readable, it forces each sender's intermediate computation to be decoded into tokens and then encoded again by the receiver, increasing generation cost, prefill overhead, and KV-cache memory.
+        </p>
+        <p>
+          We propose TFlow, a weight-space communication framework for a known and fixed receiver architecture. For each query, frozen role-prompted senders expose hidden-state trajectories, and a learned receiver-specific parameter generator maps these conditioning signals into layer- and module-specific LoRA factors. The resulting perturbations are fused, injected as a temporary forward patch, and discarded immediately after generation, enabling instance-level adaptation without permanent weight changes or additional textual context.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section has-background-light">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Highlights</h2>
+      <div class="columns is-centered">
+        <div class="column">
+          <div class="content-card has-text-centered">
+            <div class="highlight-number">+8.5</div>
+            <div class="highlight-label">maximum accuracy gain over a standalone receiver across the evaluated benchmarks</div>
+          </div>
+        </div>
+        <div class="column">
+          <div class="content-card has-text-centered">
+            <div class="highlight-number">83.27%</div>
+            <div class="highlight-label">reduction in processed tokens compared with text-based three-agent collaboration on GSM8K</div>
+          </div>
+        </div>
+        <div class="column">
+          <div class="content-card has-text-centered">
+            <div class="highlight-number">4.6&times;</div>
+            <div class="highlight-label">wall-clock speedup over TextMAS while retaining competitive reasoning accuracy</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">TFlow Architecture</h2>
+      <div class="content-card">
+        <img class="figure-img zoomable-image" src="static/images/overview.svg" alt="Overview of the TFlow parameter generator and receiver weight perturbation pipeline.">
+        <p class="caption">
+          Given an input question, each sender performs one frozen forward pass and provides hidden states as conditioning signals. A trainable parameter generator initializes parameter tokens from these states, refines them with a structured Transformer, detokenizes them into LoRA factors, and fuses per-sender updates before transiently patching the receiver.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section has-background-light">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Results</h2>
+      <p class="has-text-centered mb-5">
+        Accuracy (%) on full test splits using a shared frozen Qwen3-4B backbone. TFlow consistently improves over Single-Agent while cutting processed-token usage by 71-83% relative to TextMAS.
+      </p>
+      <div class="content-card">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>GSM8K</th>
+              <th>MATH</th>
+              <th>MMLU</th>
+              <th>HumanEval+</th>
+              <th>MBPP+</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Single-Agent</td>
+              <td>84.99</td>
+              <td>16.18</td>
+              <td>58.99</td>
+              <td>56.71</td>
+              <td>59.79</td>
+            </tr>
+            <tr>
+              <td>TextMAS</td>
+              <td>93.78</td>
+              <td>26.47</td>
+              <td>71.50</td>
+              <td>75.00</td>
+              <td>68.52</td>
+            </tr>
+            <tr class="tflow-row">
+              <td>TFlow</td>
+              <td>92.12</td>
+              <td>23.16</td>
+              <td>66.97</td>
+              <td>65.24</td>
+              <td>67.20</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Analysis</h2>
+      <p class="has-text-centered mb-5">
+        The paper analyzes whether TFlow's conditioning signals and generated LoRA tensors are genuinely instance-dependent, rather than collapsing into static task adapters.
+      </p>
+      <div class="analysis-grid">
+        <div class="analysis-card">
+          <div class="analysis-copy">
+            <span class="pill">Layer Attribution</span>
+            <h3 class="title is-5">Sender states encode task structure</h3>
+            <p>
+              Learned layer aggregation does not simply select the most diverse hidden states. More than 80% of the mass concentrates on a small set of layers, while the aggregated conditioning vector preserves the semantic ordering between within-task and cross-task pairs.
+            </p>
+          </div>
+          <div class="analysis-figure">
+            <img class="zoomable-image analysis-image analysis-image-similarity" src="static/images/sender_sim_gsm8k_mbpp.svg" alt="Per-layer sender hidden-state similarity analysis.">
+          </div>
+        </div>
+
+        <div class="analysis-card">
+          <div class="analysis-copy">
+            <span class="pill">Instance Adaptation</span>
+            <h3 class="title is-5">Dynamic updates improve over static LoRA</h3>
+            <p>
+              Replacing TFlow's generator with a conventional LoRA adapter controls for trainable capacity. Static-LoRA improves over Single-Agent, but TFlow is substantially stronger, outperforming Static-LoRA by 4.29 points on average.
+            </p>
+          </div>
+          <div class="analysis-figure">
+            <img class="zoomable-image analysis-image analysis-image-static-lora" src="static/images/static_lora_vs_tflow.svg" alt="Static LoRA versus TFlow performance.">
+          </div>
+        </div>
+
+        <div class="analysis-card">
+          <div class="analysis-copy">
+            <span class="pill">Causal Alignment</span>
+            <h3 class="title is-5">Perturbations are input-specific</h3>
+            <p>
+              Mismatched perturbation injection fixes the receiver input but swaps in updates from random, cross-task, same-task, or matched samples. Cross-task updates help, same-task updates help more, and the matched perturbation performs best, confirming fine-grained input specificity.
+            </p>
+          </div>
+          <div class="analysis-figure">
+            <img class="zoomable-image analysis-image analysis-image-mismatch" src="static/images/mismatched_perturbation.svg" alt="Mismatched perturbation injection on GSM8K.">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section has-background-light">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Reproducibility</h2>
+      <div class="content-card">
+        <pre class="code-block"><code>conda create -n tflow python=3.10 -y
+conda activate tflow
+pip install -r requirements.txt
+pip install -e .
+
+python main.py --method tflow --dataset gsm8k
+python infer.py --method tflow --question "Janet has 3 apples and buys 5 more. How many apples does she have?"</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="bibtex">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">BibTeX</h2>
+      <pre class="code-block"><code>@misc{tflow2026,
+  title  = {Good Agentic Friends Do Not Just Give Verbal Advice: They Can Update Your Weights},
+  author = {Bao, Wenrui and Wang, Huan and Wang, Jian and Wang, Zhangyang and Wang, Kai and Shang, Yuzhang},
+  year   = {2026},
+  note   = {BibTeX will be updated after the public arXiv record is available}
+}</code></pre>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="content has-text-centered">
+        <p>
+          This website is adapted from the LLaVA-PruMerge project page template and the Nerfies website style. The TFlow code is released under Apache License 2.0.
+        </p>
+      </div>
+    </div>
+  </footer>
+  <div class="image-lightbox" id="image-lightbox" aria-hidden="true">
+    <button class="lightbox-close" type="button" aria-label="Close enlarged image">&times;</button>
+    <img id="lightbox-image" src="" alt="">
+    <p id="lightbox-caption"></p>
+  </div>
+  <script>
+    const lightbox = document.getElementById("image-lightbox");
+    const lightboxImage = document.getElementById("lightbox-image");
+    const lightboxCaption = document.getElementById("lightbox-caption");
+
+    function closeLightbox() {
+      lightbox.classList.remove("is-open");
+      lightbox.setAttribute("aria-hidden", "true");
+      lightboxImage.src = "";
+      lightboxImage.alt = "";
+      document.body.classList.remove("is-lightbox-open");
+    }
+
+    document.querySelectorAll(".zoomable-image").forEach((image) => {
+      image.setAttribute("tabindex", "0");
+      image.setAttribute("role", "button");
+      image.setAttribute("title", "Click to enlarge");
+
+      function openLightbox() {
+        lightboxImage.src = image.src;
+        lightboxImage.alt = image.alt;
+        lightboxCaption.textContent = image.alt;
+        lightbox.classList.add("is-open");
+        lightbox.setAttribute("aria-hidden", "false");
+        document.body.classList.add("is-lightbox-open");
+      }
+
+      image.addEventListener("click", openLightbox);
+      image.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openLightbox();
+        }
+      });
+    });
+
+    lightbox.addEventListener("click", (event) => {
+      if (event.target === lightbox || event.target.classList.contains("lightbox-close")) {
+        closeLightbox();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && lightbox.classList.contains("is-open")) {
+        closeLightbox();
+      }
+    });
+  </script>
+</body>
+</html>
